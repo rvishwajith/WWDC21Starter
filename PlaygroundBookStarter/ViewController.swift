@@ -356,7 +356,6 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
         for creature in largeCreatures
         {
             let rule1 = VectorCalc.normalizeVector(largeBoidsRule1(creature))
-            print(rule1)
             let rule2 = VectorCalc.normalizeVector(largeBoidsRule2(creature))
             let rule3 = VectorCalc.normalizeVector(largeBoidsRule3(creature, Float(largeCreatures.count)))
             
