@@ -358,6 +358,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             let rule1 = VectorCalc.normalizeVector(largeBoidsRule1(creature))
             let rule2 = VectorCalc.normalizeVector(largeBoidsRule2(creature))
             let rule3 = VectorCalc.normalizeVector(largeBoidsRule3(creature, Float(largeCreatures.count)))
+            print(rule1)
             
             creature.velocity = VectorCalc.addVectors(
                 VectorCalc.addVectors(creature.velocity, rule1),
@@ -518,7 +519,7 @@ class VectorCalc
     
     static func normalizeVector(_ vector: SCNVector3) -> SCNVector3
     {
-        let divisionFactor = max(vector.x, max(vector.y, vector.z))
+        let divisionFactor = max(abs(vector.x), max(abs(vector.y), abs(vector.z)))
         let x = vector.x/divisionFactor
         let y = vector.y/divisionFactor
         let z = vector.z/divisionFactor
