@@ -357,13 +357,20 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
         {
             let rule1 = VectorCalc.normalizeVector(largeBoidsRule1(creature))
             let rule2 = VectorCalc.normalizeVector(largeBoidsRule2(creature))
-            let rule3 = VectorCalc.normalizeVector(largeBoidsRule3(creature, Float(largeCreatures.count)))
-            print(rule1)
+            let rule3 = VectorCalc.normalizeVector(largeBoidsRule3(creature, Double(largeCreatures.count)))
+            
+            if(creature.ticketNumber == 10)
+            {
+                print("Rule 1: \(rule1)")
+                print("Rule 2: \(rule2)")
+                print("Rule 3: \(rule3)")
+            }
             
             creature.velocity = VectorCalc.addVectors(
                 VectorCalc.addVectors(creature.velocity, rule1),
                 VectorCalc.addVectors(rule2, rule3))
-            
+            creature.velocity = VectorCalc.multiplyVector(creature.velocity, 0.1)
+             
             creature.node.position = VectorCalc.addVectors(creature.node.position, creature.velocity)
         }
     }
@@ -388,7 +395,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
     func largeBoidsRule1(_ creature: Creature) -> SCNVector3
     {
         var centerOfMass = SCNVector3(x: 0, y: 0, z: 0)
-        let percentPush = Float(10000)
+        let percentPush = Float(100)
         
         for creatures in largeCreatures
         {
@@ -419,7 +426,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
     func largeBoidsRule2(_ creature: Creature) -> SCNVector3
     {
         var smallDistance = SCNVector3(x: 0, y: 0, z: 0)
-        let distanceRadius = Float(12)
+        let distanceRadius = Double(12)
         
         for creatures in largeCreatures
         {
@@ -453,7 +460,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
 
      END PROCEDURE
      */
-    func largeBoidsRule3(_ creature: Creature, _ count: Float) -> SCNVector3
+    func largeBoidsRule3(_ creature: Creature, _ count: Double) -> SCNVector3
     {
         let velocityMatchFactor = Float(8)
         var percievedVelocity = SCNVector3(0, 0, 0)
@@ -466,7 +473,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             }
         }
         
-        percievedVelocity = VectorCalc.divideVector(percievedVelocity, count - 1)
+        percievedVelocity = VectorCalc.divideVector(percievedVelocity, Float(count - 1))
         
         return VectorCalc.divideVector(
             VectorCalc.subtractVectors(percievedVelocity, creature.velocity),
@@ -476,9 +483,9 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
 
 class VectorCalc
 {
-    static func Distance3D(_ position1: SCNVector3, _ position2: SCNVector3) -> Float
+    static func Distance3D(_ position1: SCNVector3, _ position2: SCNVector3) -> Double
     {
-        return sqrt(pow(abs(position1.x - position2.x), 2) + pow(abs(position1.x - position2.x), 2) + pow(abs(position1.x - position2.x), 2))
+        return Double(sqrt(pow(abs(position1.x - position2.x), 2) + pow(abs(position1.x - position2.x), 2) + pow(abs(position1.x - position2.x), 2)))
     }
     
     static func addVectors(_ position1: SCNVector3, _ position2: SCNVector3) -> SCNVector3
