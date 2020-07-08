@@ -242,7 +242,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
         let floor = SCNBox(width: width, height: 1, length: width, chamferRadius: 0)
         let floorNode = SCNNode(geometry: floor)
         floorNode.position = SCNVector3(x: 0, y: 0, z: 0)
-        //newScene.rootNode.addChildNode(floorNode)
+        newScene.rootNode.addChildNode(floorNode)
     }
     
     func addLargeCreatures()
@@ -251,7 +251,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
         let numberOfLargeCreatures = 48
         
         /* Geometry intialization here */
-        let geometry = SCNBox(width: 0.4, height: 0.4, length: 0.4, chamferRadius: 0)
+        let geometry = SCNBox(width: 1, height: 1, length: 1, chamferRadius: 0)
         
         for _ in 0..<numberOfLargeCreatures
         {
@@ -268,7 +268,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             let u = Float.random(in: 0...1)*/
             
             //let theta = arc4random()
-            let position = SCNVector3(x: Float(arc4random_uniform(12)) - 6, y: Float(arc4random_uniform(12)), z: Float(arc4random_uniform(12)) - 6)
+            let position = SCNVector3(x: Float(arc4random_uniform(18)) - 10, y: Float(arc4random_uniform(12)), z: Float(arc4random_uniform(18)) - 20)
             
             /* -------------------- */
             
@@ -276,6 +276,18 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             let creature = Creature(node, position, name, level, scale)
             allCreatures.append(creature)
             largeCreatures.append(creature)
+        }
+        
+        for creature in largeCreatures
+        {
+            let moveForward = SCNAction.moveBy(x: 0, y: 0, z: 40, duration: 6)
+            moveForward.timingMode = .easeInEaseOut;
+            let moveBackward = moveForward.reversed()
+            
+            let sequence = SCNAction.sequence([moveForward, moveBackward])
+            let loop = SCNAction.repeatForever(sequence)
+            
+            //creature.node.runAction(loop)
         }
     }
     
@@ -292,9 +304,11 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
     
     func addKelp()
     {
+        let numberOfKelp = 40
+        
         let geometry = SCNCylinder(radius: 0.05, height: 20)
         geometry.heightSegmentCount = 192
-        geometry.radialSegmentCount = 24
+        geometry.radialSegmentCount = 20
         
         
         let material = SCNMaterial()
@@ -302,8 +316,6 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
         try! shaders[SCNShaderModifierEntryPoint.geometry] = String(contentsOfFile: Bundle.main.path(forResource: "WWDC21/Shaders/KelpVertex", ofType: "cpp")!, encoding: String.Encoding.utf8)
         material.shaderModifiers = shaders
         geometry.materials = [material]
-        
-        let numberOfKelp = 0
         
         for _ in 0..<numberOfKelp
         {
@@ -320,17 +332,37 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
     {
         calculateLargeBoids()
         //print(largeCreatures[0].velocity)
-        
+        checkKelpCollisions()
+    }
+    
+    func checkKelpCollisions()
+    {
         for kelp in allKelp
         {
-            for creature in allCreatures
+            var yHitpoints: [Float] = []
+            var xPushes: [Float] = []
+            var zPushes: [Float] = []
+            var radii: [Float] = []
+            
+            for creature in largeCreatures
             {
                 if(VectorCalc.Distance3D(kelp.node.position, creature.node.position) > 4)
                 {
-                    //print(creature.name!)
-                    /* Do shader math here */
+                    let creatureY = creature.node.position.y
+                    let kelpY = kelp.node.position.y
+                    let offset = creatureY - kelpY
+                    let xPush = creature.node.position.x - kelp.node.position.x
+                    let zPush = creature.node.position.z - kelp.node.position.z
+                    
+                    yHitpoints.append(offset)
+                    xPushes.append(xPush)
+                    zPushes.append(zPush)
+                    radii.append(1)
                 }
             }
+            
+            let vertexShader = kelp.node.geometry!.firstMaterial!.shaderModifiers!
+            //print(vertexShader.keys)
         }
     }
     
@@ -355,16 +387,17 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
     {
         for creature in largeCreatures
         {
-            let rule1 = VectorCalc.normalizeVector(largeBoidsRule1(creature))
+            let rule1 = VectorCalc.normalizeVector(largeBoidsRule1(creature, Float(largeCreatures.count)))
             let rule2 = VectorCalc.normalizeVector(largeBoidsRule2(creature))
             let rule3 = VectorCalc.normalizeVector(largeBoidsRule3(creature, Double(largeCreatures.count)))
             
+            /*
             if(creature.ticketNumber == 10)
             {
                 print("Rule 1: \(rule1)")
                 print("Rule 2: \(rule2)")
                 print("Rule 3: \(rule3)")
-            }
+            }*/
             
             creature.velocity = VectorCalc.addVectors(
                 VectorCalc.addVectors(creature.velocity, rule1),
@@ -392,7 +425,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
 
      END PROCEDURE
      */
-    func largeBoidsRule1(_ creature: Creature) -> SCNVector3
+    func largeBoidsRule1(_ creature: Creature, _ count: Float) -> SCNVector3
     {
         var centerOfMass = SCNVector3(x: 0, y: 0, z: 0)
         let percentPush = Float(100)
@@ -404,6 +437,8 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
                 centerOfMass = VectorCalc.addVectors(centerOfMass, creatures.node.position)
             }
         }
+        
+        centerOfMass = VectorCalc.divideVector(centerOfMass, count - 1)
         return VectorCalc.divideVector(VectorCalc.subtractVectors(centerOfMass, creature.node.position), percentPush)
     }
     
@@ -560,5 +595,22 @@ class Creature
         heirarchyLevel = newLevel
         node.scale = SCNVector3(x: newScale, y: newScale, z: newScale)
         self.name = name
+    }
+}
+
+extension SCNVector3 {
+    
+    static func +(left: SCNVector3, right: SCNVector3) -> SCNVector3
+    {
+        return SCNVector3(left.x + right.x,
+                          left.y + right.y,
+                          left.z + right.z)
+    }
+    
+    static func -(left: SCNVector3, right: SCNVector3) -> SCNVector3
+    {
+        return SCNVector3(left.x - right.x,
+                          left.y - right.y,
+                          left.z - right.z)
     }
 }
