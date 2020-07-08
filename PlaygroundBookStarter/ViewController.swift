@@ -510,7 +510,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             }
         }
         
-        percievedVelocity = VectorCalc.divideVector(percievedVelocity, Float(count - 1))
+        //percievedVelocity = VectorCalc.divideVector(percievedVelocity, Float(count - 1))
         
         return VectorCalc.divideVector(
             VectorCalc.subtractVectors(percievedVelocity, creature.velocity),
