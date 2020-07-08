@@ -278,6 +278,8 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             largeCreatures.append(creature)
         }
         
+        /* ignore this */
+        /*
         for creature in largeCreatures
         {
             let moveForward = SCNAction.moveBy(x: 0, y: 0, z: 40, duration: 6)
@@ -288,7 +290,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
             let loop = SCNAction.repeatForever(sequence)
             
             //creature.node.runAction(loop)
-        }
+        }*/
     }
     
     /* The ticket number is a way of differentiating boids by checking a number rather than if the objects are equal */
@@ -304,7 +306,7 @@ class ReefSceneView: SCNView, SCNSceneRendererDelegate
     
     func addKelp()
     {
-        let numberOfKelp = 40
+        let numberOfKelp = 0
         
         let geometry = SCNCylinder(radius: 0.05, height: 20)
         geometry.heightSegmentCount = 192
